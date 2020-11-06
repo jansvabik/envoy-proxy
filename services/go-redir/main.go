@@ -8,5 +8,5 @@ import (
 func main() {
 	app := fiber.New()
 	app.Get("/", redir.Redir)
-	app.Listen(":9000")
+	app.Listen(":80")
 }
