@@ -31,6 +31,11 @@ static_resources:
                 route:
                   prefix_rewrite: "/"
                   cluster: microservice_time
+              - match:
+                  prefix: "/greeting/"
+                route:
+                  prefix_rewrite: "/"
+                  cluster: microservice_greeting
           http_filters:
           - name: envoy.filters.http.router
   clusters:
@@ -60,3 +65,16 @@ static_resources:
               socket_address:
                 address: 127.0.0.1
                 port_value: 9001
+  - name: microservice_greeting
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: microservice_greeting
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 3001
