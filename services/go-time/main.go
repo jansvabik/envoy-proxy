@@ -6,8 +6,8 @@ import (
 )
 
 func main() {
-	app := fiber.New()
-	app.Get("/", handlers.GetCurrentTime)
-	app.Get("/:country", handlers.GetCurrentTimeFormatted)
-	app.Listen(":80")
+	router := fiber.New()
+	router.Get("/", handlers.GetCurrentTime)
+	router.Get("/:country", handlers.GetCurrentTimeFormatted)
+	router.Listen(":80")
 }
