@@ -33,7 +33,7 @@ static_resources:
       socket_address: { address: 0.0.0.0, port_value: 443 }
     filter_chains:
     - filter_chain_match:
-        server_names: ["purkynka.fun"]
+        server_names: ["purkynka.fun", "www.purkynka.fun"]
       transport_socket:
         name: envoy.transport_sockets.tls
         typed_config:
@@ -51,7 +51,14 @@ static_resources:
           route_config:
             name: local_route
             virtual_hosts:
-            - name: purkynka.fun
+            - name: website
+              domains: ["www.purkynka.fun"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: website_lite
+            - name: microservices
               domains: ["purkynka.fun"]
               routes:
               - match:
@@ -69,11 +76,6 @@ static_resources:
                 route:
                   prefix_rewrite: "/"
                   cluster: microservice_greeting
-              - match:
-                  prefix: "/website/"
-                route:
-                  prefix_rewrite: "/"
-                  cluster: website_lite
               - match:
                   path: "/"
                 response_headers_to_add:
