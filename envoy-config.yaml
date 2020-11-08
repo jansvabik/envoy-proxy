@@ -1,15 +1,48 @@
 admin:
-  access_log_path: /tmp/admin_access.log
+  access_log_path: /dev/null
   address:
     socket_address: { address: 127.0.0.1, port_value: 9901 }
 
 static_resources:
   listeners:
-  - name: listener_0
+  - name: listener_http
     address:
       socket_address: { address: 0.0.0.0, port_value: 80 }
     filter_chains:
     - filters:
+      - name: envoy.filters.network.http_connection_manager
+        config:
+          stat_prefix: ingress_http
+          codec_type: auto
+          http_filters:
+          - name: envoy.router
+            config: {}
+          route_config:
+            name: http_route
+            virtual_hosts:
+            - name: http_all
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                redirect:
+                  port_redirect: 443
+                  https_redirect: true
+  - name: listener_https
+    address:
+      socket_address: { address: 0.0.0.0, port_value: 443 }
+    filter_chains:
+    - filter_chain_match:
+        server_names: ["purkynka.fun"]
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+             - certificate_chain: { filename: "/etc/letsencrypt/live/purkynka.fun/fullchain.pem" }
+               private_key: { filename: "/etc/letsencrypt/live/purkynka.fun/privkey.pem" } 
+      filters:
       - name: envoy.filters.network.http_connection_manager
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
@@ -36,6 +69,21 @@ static_resources:
                 route:
                   prefix_rewrite: "/"
                   cluster: microservice_greeting
+              - match:
+                  prefix: "/website/"
+                route:
+                  prefix_rewrite: "/"
+                  cluster: website_lite
+              - match:
+                  path: "/"
+                response_headers_to_add:
+                - header:
+                    key: "Content-Type"
+                    value: "text/html; charset=UTF-8"
+                direct_response:
+                  status: 200
+                  body:
+                    filename: "./root-response.html"
           http_filters:
           - name: envoy.filters.http.router
   clusters:
@@ -78,3 +126,16 @@ static_resources:
               socket_address:
                 address: 127.0.0.1
                 port_value: 3001
+  - name: website_lite
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: website_lite
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 3000
