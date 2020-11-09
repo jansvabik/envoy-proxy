@@ -77,6 +77,11 @@ static_resources:
                   prefix_rewrite: "/"
                   cluster: microservice_greeting
               - match:
+                  prefix: "/calc/"
+                route:
+                  prefix_rewrite: "/"
+                  cluster: microservice_calc
+              - match:
                   path: "/"
                 response_headers_to_add:
                 - header:
@@ -86,6 +91,16 @@ static_resources:
                   status: 200
                   body:
                     filename: "./root-response.html"
+              - match:
+                  path: "/root-response.css"
+                response_headers_to_add:
+                - header:
+                    key: "Content-Type"
+                    value: "text/css; charset=UTF-8"
+                direct_response:
+                  status: 200
+                  body:
+                    filename: "./root-response.css"
           http_filters:
           - name: envoy.filters.http.router
   clusters:
@@ -115,6 +130,19 @@ static_resources:
               socket_address:
                 address: 127.0.0.1
                 port_value: 9001
+  - name: microservice_calc
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: microservice_calc
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 9002
   - name: microservice_greeting
     connect_timeout: 0.25s
     type: STATIC
