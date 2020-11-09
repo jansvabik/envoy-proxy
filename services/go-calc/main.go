@@ -9,8 +9,8 @@ func main() {
 	router := fiber.New()
 	router.Get("/", calc.HealthCheck)
 	router.Get("/add", calc.Add)
-	// router.Get("/subtract", calc.Subtract)
-	// router.Get("/multiply", calc.Multiply)
-	// router.Get("/divide", calc.Divide)
+	router.Get("/subtract", calc.Subtract)
+	router.Get("/multiply", calc.Multiply)
+	router.Get("/divide", calc.Divide)
 	router.Listen(":80")
 }
