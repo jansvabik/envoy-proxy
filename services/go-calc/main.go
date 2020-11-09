@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/jansvabik/envoy-proxy/services/go-calc/calc"
+	"github.com/jansvabik/envoy-proxy/tree/master/services/go-calc/calc"
 )
 
 func main() {
